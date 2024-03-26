@@ -21,7 +21,7 @@ Ensure you have the following installed:
 
 1. **Clone the repository** to your local machine: 
    ```bash
-   git clone https://github.com/vikasvijigiri/capstone_2.git && cd phonepe-pulse-visualization && pip install -r requirements.txt && streamlit run Home.py
+   git clone https://github.com/vikasvijigiri/PhonePe_Pulse_Viz.git && cd phonepe-pulse-visualization && pip install -r requirements.txt && streamlit run Home.py
 
 
 
