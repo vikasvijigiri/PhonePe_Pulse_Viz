@@ -95,10 +95,7 @@ def create_map(col1, col2, df):
 #     return fig
 
 
-
-
-@st.cache_data
-def get_table_names():
+def get_table_names_no_cache():
     try:
         database_name = 'phonepe_pulse'
         
@@ -107,9 +104,9 @@ def get_table_names():
         root_placeholder = cols[1].empty()
         passwd_placeholder = cols[2].empty()
         
-        localhost = localhost_placeholder.text_input("hostname", value='localhost')  
-        root = root_placeholder.text_input("username", value='root')
-        passwd = passwd_placeholder.text_input("Password", value='Vikas@123')  
+        localhost = localhost_placeholder.text_input("hostname", value='localhost', key='localhost1')  
+        root = root_placeholder.text_input("username", value='root', key='roots')
+        passwd = passwd_placeholder.text_input("Password", value='Vikas@123', key='pass')  
         
 
         
@@ -151,6 +148,123 @@ def get_table_names():
     except mysql.connector.Error as e:
         print(f"Error: {e}")
         return None, None
+
+
+@st.cache_data
+def get_table_names():
+    try:
+        database_name = 'phonepe_pulse'
+        
+        cols = st.columns(3)
+        localhost_placeholder = cols[0].empty()
+        root_placeholder = cols[1].empty()
+        passwd_placeholder = cols[2].empty()
+        
+        localhost = localhost_placeholder.text_input("hostname", value='localhost', key='localhostss')  
+        root = root_placeholder.text_input("username", value='root', key='roots')
+        passwd = passwd_placeholder.text_input("Password", value='Vikas@123', key='pass')  
+        
+
+        
+
+
+
+        
+        conn = mysql.connector.connect(
+            host=localhost,
+            user=root,
+            password=passwd,
+            database=database_name
+        )
+        cursor = conn.cursor()
+
+
+        
+
+        # Retrieve list of tables in the database
+        cursor.execute("SHOW TABLES")
+
+        tables = [table[0] for table in cursor.fetchall()]
+        #st.write(tables)
+
+        # # Execute SQL query to select all data from the table
+        # query = f"SELECT * FROM {table_name}"
+        # df = pd.read_sql_query(query, conn)
+
+
+        # Close cursor and connection
+        cursor.close()
+        conn.close()
+        # Empty the placeholders after 5 seconds
+        localhost_placeholder.empty()
+        root_placeholder.empty()
+        passwd_placeholder.empty()
+        return tables
+
+    except mysql.connector.Error as e:
+        print(f"Error: {e}")
+        return None, None
+
+
+
+def copy_mysql_data_to_df_no_cache(table_names):
+    try:
+        container_style = """
+            <style>
+            .dataframe-container {
+                width: 6000px;  /* Adjust the width as needed */
+            }
+            </style>
+        """   
+        database_name = 'phonepe_pulse'
+
+
+        localhost = 'localhost'  
+        root = 'root'
+        passwd = 'Vikas@123'  
+        # if table_name is not None:
+        #     if table_name not in table_names:
+        #         st.error(f"Table {table_name} doest not exists in {database_name}")
+        # else:
+        #     st.error(f"Please enter a valid table name!")
+            
+        # Connect to MySQL server
+        conn = mysql.connector.connect(
+            host=localhost,
+            user=root,
+            password=passwd,
+            database=database_name
+        )
+        warn = st.warning("Fetching directly not cached data!")
+        
+
+        #warn.empty()
+        data_frames = {}  # Initialize an empty dictionary
+        other_data_frames = {}
+        for table_name in table_names:
+            # Execute SQL query to select all data from the table
+            query = f"SELECT * FROM {database_name}.{table_name}"
+            df = pd.read_sql_query(query, conn)
+            #st.dataframe(df)
+            col1 = matches_column(df, 'bihar')
+            #st.write(col1)
+            if col1 is not None:
+                df['States'] = [state.title() for state in df[col1].tolist()] 
+                df.drop(columns=[col1], inplace=True)
+                #st.dataframe(df)
+                data_frames[table_name] = df.drop_duplicates()  # As 
+            else:
+                other_data_frames[table_name] = df
+            #st.write("vik", table_name)
+        # Close connection
+        conn.close()
+
+        return data_frames, other_data_frames
+
+    except mysql.connector.Error as e:
+        print(f"Error: {e}")
+        return None
+
 
 @st.cache_data
 def copy_mysql_data_to_df(table_names):
@@ -426,7 +540,23 @@ def generate_heatmap(table_names, colx, coly):
 
 def main():
     open_header()
-
+    # Centering CSS
+    centered_style = "<style> .centered { display: flex; justify-content: center; } </style>"
+    
+    # Beautified button with centered styling
+    button_html = """
+        <div class="centered">
+            <button style="background-color: #4CAF50; color: red; padding: 10px 24px; cursor: pointer; border: none; border-radius: 4px;">Update Data from MySQL</button>
+        </div>
+    """
+    
+    # Render the button
+    st.markdown(centered_style, unsafe_allow_html=True)
+    if st.button('Update Data from MySQL'):
+        # if st.button('Click to dynamically update'):
+        table_names = get_table_names_no_cache()
+        st.session_state.data_frames_dict, st.session_state.odata_frames_dict = copy_mysql_data_to_df_no_cache(table_names)        
+    
     if 'data_frames_dict' not in st.session_state:
         st.session_state.data_frames_dict = None
 
@@ -466,6 +596,7 @@ def main():
 
 
     generate_heatmap(table_names, 'year', 'Name')
+    col = st.columns(3)
 
 
 

@@ -481,7 +481,7 @@ def migrate_to_mysql(localhost, root, passwd, table_name):
         #engine.dispose()
         #st.session_state.df.to_sql(table_name, con=engine, if_exists='replace', index=False)
         #create_table_from_df(mysql_conn, mysql_cursor, database_name, table_name, st.session_state.df)
-        load_data_to_mysql(localhost, root, passwd, 'phonepe_pulse', st.session_state.df, table_name)
+        load_data_to_mysql(localhost, root, passwd, 'phonepe_pulse', st.session_state.df, table_name, add_)
         
         #engine = create_engine(f"mysql+mysqlconnector://{root}:{localhost}@{passwd}/{database_name}")
         
@@ -509,42 +509,127 @@ def connect_to_mysql(host, user, password, database):
     return conn
 
 def create_table(conn, df, table_name):
-    cursor = conn.cursor()
-    columns = []
 
-    for col, dtype in df.dtypes.items():
-        if pd.api.types.is_string_dtype(dtype):
-            sql_type = "VARCHAR(255)"
-        elif pd.api.types.is_integer_dtype(dtype):
-            sql_type = "BIGINT"
-        elif pd.api.types.is_float_dtype(dtype):
-            sql_type = "FLOAT"
-        elif pd.api.types.is_bool_dtype(dtype):
-            sql_type = "BOOLEAN"
+    # cursor = conn.cursor()
+    # columns = []
+
+    # for col, dtype in df.dtypes.items():
+    #     if pd.api.types.is_string_dtype(dtype):
+    #         sql_type = "VARCHAR(255)"
+    #     elif pd.api.types.is_integer_dtype(dtype):
+    #         sql_type = "BIGINT"
+    #     elif pd.api.types.is_float_dtype(dtype):
+    #         sql_type = "FLOAT"
+    #     elif pd.api.types.is_bool_dtype(dtype):
+    #         sql_type = "BOOLEAN"
+    #     else:
+    #         sql_type = "VARCHAR(255)"
+
+    #     columns.append(f"{col} {sql_type}")
+
+    # columns_str = ", ".join(columns)
+    # create_table_query = f"CREATE TABLE IF NOT EXISTS {table_name} ({columns_str})"
+    # cursor.execute(create_table_query)
+    # cursor.close()
+    try:
+        cursor = conn.cursor()
+        columns = []
+
+        # Check if the table exists
+        existing_tables_query = f"SHOW TABLES LIKE '{table_name}'"
+        cursor.execute(existing_tables_query)
+        table_exists = cursor.fetchone() is not None
+
+        if not table_exists:
+            for col, dtype in df.dtypes.items():
+                if pd.api.types.is_string_dtype(dtype):
+                    sql_type = "VARCHAR(255)"
+                elif pd.api.types.is_integer_dtype(dtype):
+                    sql_type = "BIGINT"
+                elif pd.api.types.is_float_dtype(dtype):
+                    sql_type = "FLOAT"
+                elif pd.api.types.is_bool_dtype(dtype):
+                    sql_type = "BOOLEAN"
+                else:
+                    sql_type = "VARCHAR(255)"
+
+                columns.append(f"{col} {sql_type}")
+
+            columns_str = ", ".join(columns)
+            create_table_query = f"CREATE TABLE {table_name} ({columns_str})"
+            cursor.execute(create_table_query)
+        cursor.close()
+    except Exception as e:
+        print(f"Error creating table: {str(e)}")
+
+
+def insert_data(conn, df, table_name, append=False):
+    # cursor = conn.cursor()
+    # columns = ', '.join(df.columns)
+    # placeholders = ', '.join(['%s'] * len(df.columns))
+    # query = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
+    # data = [tuple(row) for row in df.values]
+    # cursor.executemany(query, data)
+    # cursor.close()
+    # conn.commit()
+    try:
+        cursor = conn.cursor()
+        
+        if append:
+            # If append mode is enabled, simply insert data into the table
+            columns = ', '.join(df.columns)
+            placeholders = ', '.join(['%s'] * len(df.columns))
+            query = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
+            data = [tuple(row) for row in df.values]
+            cursor.executemany(query, data)
+            conn.commit()
         else:
-            sql_type = "VARCHAR(255)"
+            # Otherwise, check if the table exists and create it if needed
+            existing_tables_query = f"SHOW TABLES LIKE '{table_name}'"
+            cursor.execute(existing_tables_query)
+            table_exists = cursor.fetchone() is not None
 
-        columns.append(f"{col} {sql_type}")
+            if not table_exists:
+                # If the table does not exist, create it
+                columns = []
+                for col, dtype in df.dtypes.items():
+                    if pd.api.types.is_string_dtype(dtype):
+                        sql_type = "VARCHAR(255)"
+                    elif pd.api.types.is_integer_dtype(dtype):
+                        sql_type = "BIGINT"
+                    elif pd.api.types.is_float_dtype(dtype):
+                        sql_type = "FLOAT"
+                    elif pd.api.types.is_bool_dtype(dtype):
+                        sql_type = "BOOLEAN"
+                    else:
+                        sql_type = "VARCHAR(255)"
 
-    columns_str = ", ".join(columns)
-    create_table_query = f"CREATE TABLE IF NOT EXISTS {table_name} ({columns_str})"
-    cursor.execute(create_table_query)
-    cursor.close()
+                    columns.append(f"{col} {sql_type}")
 
-def insert_data(conn, df, table_name):
-    cursor = conn.cursor()
-    columns = ', '.join(df.columns)
-    placeholders = ', '.join(['%s'] * len(df.columns))
-    query = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
-    data = [tuple(row) for row in df.values]
-    cursor.executemany(query, data)
-    cursor.close()
-    conn.commit()
+                columns_str = ", ".join(columns)
+                create_table_query = f"CREATE TABLE IF NOT EXISTS {table_name} ({columns_str})"
+                cursor.execute(create_table_query)
 
-def load_data_to_mysql(host, user, password, database, df, table_name):
+                # Insert data into the newly created table
+                columns = ', '.join(df.columns)
+                placeholders = ', '.join(['%s'] * len(df.columns))
+                query = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
+                data = [tuple(row) for row in df.values]
+                cursor.executemany(query, data)
+                conn.commit()
+
+        cursor.close()
+    except Exception as e:
+        st.write(f"Error inserting into table: {str(e)}")
+        st.warning("Try entering a different table name!")
+
+
+
+
+def load_data_to_mysql(host, user, password, database, df, table_name, add):
     conn = connect_to_mysql(host, user, password, database)
     create_table(conn, df, table_name)
-    insert_data(conn, df, table_name)
+    insert_data(conn, df, table_name, add)
     conn.close()
 
 
@@ -561,179 +646,3 @@ if __name__ == "__main__":
 
 
 
-
-
-
-
-
-
-
-    #st.write(st.session_state.sdframe)
-    #print(df['year'].unique())
-
-    # Step 2: DATA PROCESSING (CLEANING, HANDLING MISSING VALUES)
-    #data_frame_unique_vals_columsn(df)
-    #de.fill_missing_values(st.session_state.sdframe)
-
-
-    # #Step 3: Data insertion to MySQL server
-    # MySQL_server_details_UI()
-
-
-    # # data_visualization_states(st.session_state.sdframe['count'])
-    # progress_bar = st.sidebar.progress(0)
-    # status_text = st.sidebar.empty()
-    # last_rows = np.random.randn(1, 1)
-    # chart = st.line_chart(last_rows)
-
-    # for i in range(1, 101):
-    #     new_rows = last_rows[-1, :] + np.random.randn(5, 1).cumsum(axis=0)
-    #     status_text.text("%i%% Complete" % i)
-    #     chart.add_rows(new_rows)
-    #     progress_bar.progress(i)
-    #     last_rows = new_rows
-    #     time.sleep(0.05)
-
-    # progress_bar.empty()
-
-    # Streamlit widgets automatically run the script from top to bottom. Since
-    # this button is not connected to any other logic, it just causes a plain
-    # rerun.
-    #st.button("Re-run")
-
-
-
-
-
-
-    
-    
-    # Get the number of unique values and unique values in each column
-    #def data_frame_unique_vals_columns(self):
-        # unique_values = {}
-        # for column in st.session_state.sdframe:
-        #     unique_values[column] = {'nunique': st.session_state[column].nunique(), 'unique_values': st.session_state[column].unique()}
-        
-        # print("Unique values and their counts in each column:")
-        # for column, values in unique_values.items():
-        #     print(f"Column: {column}")
-        #     print(f"Number of unique values: {values['nunique']}")
-        #     print(f"Unique values: {values['unique_values']}")
-        #     print()
-
-
-        #st.write(st.session_state.sdframe['state'].unique())
-        # Options
-
-
-        # options = ["Option 1", "Option 2", "Option 3"]
-        
-        # # Render Selectbox with correct options
-        # selected_option = st.selectbox("Choose an option", options)
-        
-        # state = cols[1].selectbox(
-        #    "Which type of monetary data you want to see?",
-        #    st.session_state.sdframe['type'].unique(),
-        #    index='insurance',
-        #    placeholder="Select",
-        # )        
-    
-      
-
-
-
-
-        
-    # # Data processing (handling missing values and etc)    
-    # def fill_missing_values(self, df):
-    #     print(df)    
-        
-
-
-
-
-
-                    # else:
-                    #     for district in json_data['data']['districts']:
-                    #     districts_data.[district['entityName'], district['metric']['type'], district['metric']['count'], district['metric']['amount']]
-                    #     df_districts = pd.DataFrame(districts_data, columns=['District', 'Type', 'Count', 'Amount'])
-                        
-                    #     # Extracting data for 'pincodes'
-                    #     pincodes_data = [(pincode['entityName'], pincode['metric']['type'], pincode['metric']['count'], pincode['metric']['amount']) for pincode in json_data['data']['pincodes']]
-                    #     df_pincodes = pd.DataFrame(pincodes_data, columns=['Pincode', 'Type', 'Count', 'Amount'])
-    
-
-                        # # Extracting data for 'districts'
-                        # districts_data = [(district['entityName'], district['metric']['type'], district['metric']['count'], district['metric']['amount']) for district in json_data['data']['districts']]
-                        # df_districts = pd.DataFrame(districts_data, columns=['entityName', 'type', 'count', 'amount'])
-                        
-                        # # Extracting data for 'pincodes'
-                        # pincodes_data = [(pincode['entityName'], pincode['metric']['type'], pincode['metric']['count'], pincode['metric']['amount']) for pincode in json_data['data']['pincodes']]
-                        # df_pincodes = pd.DataFrame(pincodes_data, columns=['entityName', 'type', 'count', 'amount'])
-
-                    
-                        # states_data = json_data['data']['states'][0]
-                        # st.write(states_data)
-                        # type = states_data['metric']['type']
-                        # count = states_data['metric']['count']  
-                        # amount = states_data['metric']['amount']
-                        # name = states_data['entityName']
-                        
-                        # # Extracting state information
-                        # state_info = [type, year, quarter, state, count, amount, name]
-                        
-                        # # Create DataFrame
-                        # df_t = pd.DataFrame(state_info, columns=['type', 'year', 'quarter', 'state', 'Count', 'Amount', 'State'])
-
-
-
-
-
-        # if 1 == 1 and json_exists:
-        #     states_list.append(str(list_file_contents[-3]))
-        #     json_data = json.load(open(file_path))             
-        #     #if state_ in list_file_contents and json_data:
-        #     #st.write(json_data)
-        #     if 1 == 1:  
-        #         if 'aggregated' in list_file_contents and 'insurance' in list_file_contents:
-        #             quarter = int(list_file_contents[-1].split(".")[0])
-        #             year = str(list_file_contents[-2])
-        #             state = str(list_file_contents[-3])
-        #             df_data = []
-        #             if json_data['data']['transactionData']:
-        #                 name = json_data['data']['transactionData'][0]['name']
-        #                 p_type = json_data['data']['transactionData'][0]['paymentInstruments'][0]['type']
-        #                 count = json_data['data']['transactionData'][0]['paymentInstruments'][0]['count']
-        #                 amount = json_data['data']['transactionData'][0]['paymentInstruments'][0]['amount']
-        #                 df_data.append([monetary_type_, year, quarter, state, name, p_type, count, amount])
-        #             df_a_i = pd.DataFrame(df_data, 
-        #                                   columns=['type', 'year', 'quarter', 'state', 'Name', 'Type', 'Count', 'Amount'])
-        #     elif 1 == 1:  
-        #         if 'aggregated' in list_file_contents and 'transaction' in list_file_contents:    
-        #             quarter = int(list_file_contents[-1].split(".")[0])
-        #             year = str(list_file_contents[-2])
-        #             state = str(list_file_contents[-3])
-        #             df_data = []
-        #             for transaction in json_data['data']['transactionData']:
-        #                 name = transaction['name']
-        #                 if transaction['paymentInstruments']:
-        #                     count = transaction['paymentInstruments'][0]['count']
-        #                     amount = transaction['paymentInstruments'][0]['amount']
-        #                     df_data.append([monetary_type_, year, quarter, state, name, count, amount])
-                    
-        #             # Create DataFrame
-        #             df_a_t = pd.DataFrame(df_data, columns=['type', 'year', 'quarter', 'state', 'Name', 'Count', 'Amount'])
-        #     elif 1 == 1:  
-        #         if 'aggregated' in list_file_contents and 'user' in list_file_contents:      
-        #             quarter = int(list_file_contents[-1].split(".")[0])
-        #             year = str(list_file_contents[-2])
-        #             state = str(list_file_contents[-3])
-        #             df_data = []
-        #             for device in json_data['data']['usersByDevice']:
-        #                 brand = device['brand']
-        #                 count = device['count']
-        #                 percentage = device['percentage']
-        #                 df_data.append([monetary_type_, year, quarter, monetary_type_, year, state, quarter, brand, count, percentage])
-                    
-        #             # Create DataFrame
-        #             df_a_u = pd.DataFrame(df_data, columns=['type', 'year', 'quarter', 'state', 'Brand', 'Count', 'Percentage']) 
