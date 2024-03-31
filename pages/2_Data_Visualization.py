@@ -104,11 +104,13 @@ def get_table_names_no_cache():
         root_placeholder = cols[1].empty()
         passwd_placeholder = cols[2].empty()
         
-        localhost = localhost_placeholder.text_input("hostname", value='localhost', key='localhost1')  
-        root = root_placeholder.text_input("username", value='root', key='roots')
-        passwd = passwd_placeholder.text_input("Password", value='Vikas@123', key='pass')  
+        #localhost = localhost_placeholder.text_input("hostname", value='localhost', key='localhost1')  
+        #root = root_placeholder.text_input("username", value='root', key='roots')
+        #passwd = passwd_placeholder.text_input("Password", value='Vikas@123', key='pass')  
         
-
+        localhost = st.session_state.localhost
+        root = st.session_state.root
+        passwd = st.session_state.passwd
         
 
 
