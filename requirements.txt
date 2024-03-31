@@ -1,4 +1,4 @@
-git
+gitpython
 streamlit
 mysql-connector-python
 plotly
