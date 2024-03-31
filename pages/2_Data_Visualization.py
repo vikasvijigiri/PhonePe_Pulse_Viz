@@ -167,7 +167,9 @@ def get_table_names():
         passwd = passwd_placeholder.text_input("Password", value='Vikas@123', key='pass')  
         
 
-        
+        localhost = st.session_state.localhost
+        root = st.session_state.root
+        passwd = st.session_state.passwd        
 
 
 
@@ -224,6 +226,11 @@ def copy_mysql_data_to_df_no_cache(table_names):
         localhost = 'localhost'  
         root = 'root'
         passwd = 'Vikas@123'  
+
+        localhost = st.session_state.localhost
+        root = st.session_state.root
+        passwd = st.session_state.passwd
+        
         # if table_name is not None:
         #     if table_name not in table_names:
         #         st.error(f"Table {table_name} doest not exists in {database_name}")
@@ -284,6 +291,11 @@ def copy_mysql_data_to_df(table_names):
         localhost = 'localhost'  
         root = 'root'
         passwd = 'Vikas@123'  
+
+        localhost = st.session_state.localhost
+        root = st.session_state.root
+        passwd = st.session_state.passwd
+        
         # if table_name is not None:
         #     if table_name not in table_names:
         #         st.error(f"Table {table_name} doest not exists in {database_name}")
