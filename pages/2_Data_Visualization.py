@@ -159,15 +159,17 @@ def get_table_names():
         
         cols = st.columns(3)
 
-        
-        localhost = cols[0].text_input("hostname", value='localhost', key='localhostss')  
-        root = cols[1].text_input("username", value='root', key='roots')
-        passwd = cols[2].text_input("Password", value='Vikas@123', key='pass')  
-        
 
+        # st.session_state.localhost = 
+        
+        # st.session_state.localhost = cols[0].text_input("hostname", value='localhost', key='localhostss')  
+        # st.session_state.root = cols[1].text_input("username", value='root', key='roots')
+        # st.session_state.passwd  = cols[2].text_input("Password", value='Vikas@123', key='pass')  
         localhost = st.session_state.localhost
         root = st.session_state.root
-        passwd = st.session_state.passwd        
+        passwd = st.session_state.passwd               
+        st.write(localhost)
+ 
 
 
 
