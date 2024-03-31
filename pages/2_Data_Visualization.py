@@ -214,7 +214,7 @@ def get_table_names():
 
     except mysql.connector.Error as e:
         print(f"Error: {e}")
-        return None, None
+        return None
 
 
 
