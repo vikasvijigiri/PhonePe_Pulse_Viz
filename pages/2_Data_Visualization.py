@@ -583,42 +583,45 @@ def main():
 
     if 'odata_frames_dict' not in st.session_state:
         st.session_state.odata_frames_dict = None        
-        #st.write("First and last")
+
+
+    if table_name:
+        # if st.button('Click to dynamically update'):
+        table_names = get_table_names()
+        st.write(table_names)
+        if st.session_state.data_frames_dict is None:
+            st.session_state.data_frames_dict, st.session_state.odata_frames_dict = copy_mysql_data_to_df(table_names)
+            #st.write("Again doing!")
+        #st.write(st.session_state.data_frames_dict)
+        df, col1, col2 = create_sliders(table_names)
     
-    # if st.button('Click to dynamically update'):
-    table_names = get_table_names()
-    st.write(table_names)
-    if st.session_state.data_frames_dict is None:
-        st.session_state.data_frames_dict, st.session_state.odata_frames_dict = copy_mysql_data_to_df(table_names)
-        #st.write("Again doing!")
-    #st.write(st.session_state.data_frames_dict)
-    df, col1, col2 = create_sliders(table_names)
-
-    cols = st.columns(3)
-    if not df.empty:
-
-        #st.write(df[col2])
-
-        fig = create_map(col1, col2, df)
-        st.plotly_chart(fig)    
+        cols = st.columns(3)
+        if not df.empty:
+    
+            #st.write(df[col2])
+    
+            fig = create_map(col1, col2, df)
+            st.plotly_chart(fig)    
+        else:
+            st.warning("Empty dataframe encountered!")
+            fig = create_map(col1, col2, df)
+            st.plotly_chart(fig)  
+    
+    
+        st.title('Variation over the years')
+    
+        # Add a sidebar
+        st.sidebar.markdown('### Animation Controls')
+        frame = st.sidebar.slider('Frame', min_value=0, max_value=9)
+    
+        # Display the animated plot
+        st.plotly_chart(state_evolution_year(table_names), use_container_width=True)
+    
+    
+        generate_heatmap(table_names, 'year', 'Name')
+        col = st.columns(3)
     else:
-        st.warning("Empty dataframe encountered!")
-        fig = create_map(col1, col2, df)
-        st.plotly_chart(fig)  
-
-
-    st.title('Variation over the years')
-
-    # Add a sidebar
-    st.sidebar.markdown('### Animation Controls')
-    frame = st.sidebar.slider('Frame', min_value=0, max_value=9)
-
-    # Display the animated plot
-    st.plotly_chart(state_evolution_year(table_names), use_container_width=True)
-
-
-    generate_heatmap(table_names, 'year', 'Name')
-    col = st.columns(3)
+        st.warning("Tables are empty or check your database details and the connection! ")
 
 
 
