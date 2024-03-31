@@ -593,7 +593,7 @@ def main():
         st.session_state.data_frames_dict, st.session_state.odata_frames_dict = copy_mysql_data_to_df(table_names)
         #st.write("Again doing!")
     #st.write(st.session_state.data_frames_dict)
-    st.write(table_names)
+    st.write('table names', table_names)
     if table_names:        
         df, col1, col2 = create_sliders(table_names)
     
