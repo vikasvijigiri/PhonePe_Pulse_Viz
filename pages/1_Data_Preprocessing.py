@@ -417,100 +417,73 @@ def table_exists(cursor, database_name, table_name):
     cursor.execute(f"SHOW TABLES FROM {database_name} LIKE '{table_name}'")
     return cursor.fetchone() is not None
     
-
 def migrate_to_mysql(localhost, root, passwd, table_name):
-    container_style = """
-        <style>
-        .dataframe-container {
-            width: 6000px;  /* Adjust the width as needed */
-        }
-        </style>
-    """
-    button_style = """
+    try:
+        container_style = """
             <style>
-            .stButton > button {
-                color: blue;
-                background: white;
-                width: 200px;
-                height: 50px;
+            .dataframe-container {
+                width: 6000px;  /* Adjust the width as needed */
             }
             </style>
-            """ 
+        """
+        button_style = """
+                <style>
+                .stButton > button {
+                    color: blue;
+                    background: white;
+                    width: 200px;
+                    height: 50px;
+                }
+                </style>
+                """ 
 
-    database_name = 'phonepe_pulse'
+        database_name = 'phonepe_pulse'
 
-    st.markdown("""
-        <style>
-        .radio-container {
-            width: 400px !important;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-    radio_append_cols = st.columns(3)
-    #########################################
-    add_ = radio_append_cols[1].radio(
-        "How would you like to add data?",
-        ['append', 'overwrite'],
-        index = 0
-    )    
- 
-    #st.write("Almost near button")
+        st.markdown("""
+            <style>
+            .radio-container {
+                width: 400px !important;
+            }
+            </style>
+            """, unsafe_allow_html=True)
+        radio_append_cols = st.columns(3)
+        #########################################
+        add_ = radio_append_cols[1].radio(
+            "How would you like to add data?",
+            ['append', 'overwrite'],
+            index = 0
+        )    
 
-    button_view_col = st.columns(7)
-    ########### button 1
-    st.markdown(button_style, unsafe_allow_html=True)  
-    button_view = button_view_col[2].button('Click to Upload', key = 'final upload')    
-    if st.session_state.get('buttonFupload') != True:
-        st.session_state['buttonFupload'] = button_view
-    
-    if st.session_state['buttonFupload'] == True: 
-        # Connect to MySQL
-        # mysql_conn = mysql.connector.connect(
-        #     host=localhost,
-        #     user=root,
-        #     password=passwd,
-        #     auth_plugin='mysql_native_password'
-        # )
-        # mysql_cursor = mysql_conn.cursor()
-        # st.write("Connected to MySQL!")
+        button_view_col = st.columns(7)
+        ########### button 1
+        st.markdown(button_style, unsafe_allow_html=True)  
+        button_view = button_view_col[2].button('Click to Upload', key='final_upload')    
+        if st.session_state.get('buttonFupload') != True:
+            st.session_state['buttonFupload'] = button_view
 
-        #mysql_cursor.execute(f"CREATE DATABASE IF NOT EXISTS {database_name}")
-        # if table_exists(mysql_cursor, database_name, table_name):
-        #     alert = st.success(f"Table '{table_name}' exists.")
-        #     time.sleep(3) # Wait for 3 seconds
-        #     alert.empty() # Clear the alert            
-        # else:
-        #     alert = st.warning(f"Table '{table_name}' does not exist.")
-        #     time.sleep(3) # Wait for 3 seconds
-        #     alert.empty() # Clear the alert
+        if st.session_state['buttonFupload'] == True: 
+            # Connect to MySQL
+            mysql_conn = mysql.connector.connect(
+                host=localhost,
+                user=root,
+                password=passwd,
+                auth_plugin='mysql_native_password'
+            )
+            mysql_cursor = mysql_conn.cursor()
 
-        # Create SQLAlchemy engine
-        #engine = create_engine(f"mysql+mysqlconnector://{root}:{passwd}@{localhost}/{database_name}")
-        
-        
-        # Use the to_sql method to dump the DataFrame into MySQL
-        #st.session_state.df.to_sql(name=table_name, con=engine, if_exists='append', index=False)
-        
-        # Close the SQLAlchemy engine
-        #engine.dispose()
-        #st.session_state.df.to_sql(table_name, con=engine, if_exists='replace', index=False)
-        #create_table_from_df(mysql_conn, mysql_cursor, database_name, table_name, st.session_state.df)
-        load_data_to_mysql(localhost, root, passwd, 'phonepe_pulse', st.session_state.df, table_name, add_)
-        
-        #engine = create_engine(f"mysql+mysqlconnector://{root}:{localhost}@{passwd}/{database_name}")
-        
-        # Insert DataFrame into SQL table
-        #st.session_state.df.to_sql(table_name, con=engine, if_exists='append', index=False)  # Replace 'your_table' with your actual table name
-        
+            # Use the to_sql method to dump the DataFrame into MySQL
+            load_data_to_mysql(localhost, root, passwd, 'phonepe_pulse', st.session_state.df, table_name, add_)
 
-        #engine.dispose()
-        #mysql_conn.close()        
-        st.success('Data appended successfully!')   
-        st.session_state['buttonUpload'] = False
-        st.session_state['buttonView'] = False
-        st.session_state['buttonFupload'] = False
+            st.success('Data appended successfully!')   
+            st.session_state['buttonUpload'] = False
+            st.session_state['buttonView'] = False
+            st.session_state['buttonFupload'] = False
 
+            mysql_cursor.close()
+            mysql_conn.close()
 
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
 
 
 def connect_to_mysql(host, user, password, database):
@@ -574,7 +547,7 @@ def create_table(conn, df, table_name):
             cursor.execute(create_table_query)
         cursor.close()
     except Exception as e:
-        print(f"Error creating table: {str(e)}")
+        st.write(f"Error creating table: {str(e)}")
 
 
 def insert_data(conn, df, table_name, append=False):
