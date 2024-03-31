@@ -279,7 +279,7 @@ def copy_mysql_data_to_df_no_cache(table_names):
 
     except mysql.connector.Error as e:
         print(f"Error: {e}")
-        return None
+        return None, None
 
 
 @st.cache_data
@@ -344,7 +344,7 @@ def copy_mysql_data_to_df(table_names):
 
     except mysql.connector.Error as e:
         print(f"Error: {e}")
-        return None
+        return None, None
 
 
 
