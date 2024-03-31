@@ -394,8 +394,18 @@ def MySQL_server_details_UI():
     root = cols[1].text_input("username", value='root')
     passwd = cols[2].text_input("Password", value='Vikas@123')  
     table_name = cols[3].text_input("Table Name", value='table_name')
+    if 'localhost' not in st.session_state:
+        st.session_state.localhost = 'localhost'
+    if 'root' not in st.session_state:
+        st.session_state.root = 'root'
+    if 'passwd' not in st.session_state:
+        st.session_state.passwd = 'Vikas@123'
 
-
+    st.session_state.localhost = localhost
+    st.session_state.root = root
+    st.session_state.passwd = passwd
+    
+    
     #colss = st.columns(7)
     #st.markdown(container_style, unsafe_allow_html=True)
     #st.dataframe(st.session_state.df, width=1024*2, height=768)  
