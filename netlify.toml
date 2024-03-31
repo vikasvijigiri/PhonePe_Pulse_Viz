@@ -1,3 +1,3 @@
 [build]
-  command = "pip install -r requirements.txt && python Home.py"
+  command = "pip install -r requirements.txt && streamlit run Home.py --format=html > index.html"
   publish = "./"
