@@ -38,7 +38,7 @@ def list_files(base_path):
     return files
 
 
-
+'''
 @st.cache_data
 def clone_or_use_permanent_folder(repo_url):
     # Create or retrieve a temporary directory for storing the repository
@@ -56,7 +56,31 @@ def clone_or_use_permanent_folder(repo_url):
         # Clone the repository into the permanent folder
         git.Repo.clone_from(repo_url, permanent_folder)
         return list_files(permanent_folder)
+'''
+
+@st.cache(allow_output_mutation=True)
+def clone_or_use_permanent_folder(repo_url):
+    # Define the path to the permanent folder
+    permanent_folder = os.path.join(tempfile.gettempdir(), "pulse_repo")
     
+    # Check if the permanent folder already exists and is not empty
+    if os.path.exists(permanent_folder) and os.listdir(permanent_folder):
+        print("Using existing permanent folder:", permanent_folder)
+        return list_files(permanent_folder)
+    else:
+        try:
+            # Create the permanent folder if it doesn't exist
+            os.makedirs(permanent_folder, exist_ok=True)
+            print("Cloning repository into permanent folder:", permanent_folder)
+            # Clone the repository into the permanent folder
+            git.Repo.clone_from(repo_url, permanent_folder)
+            return list_files(permanent_folder)
+        except Exception as e:
+            print("Error:", e)
+            return None
+
+
+
 #######################################################################
 
 
