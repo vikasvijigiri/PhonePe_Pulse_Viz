@@ -152,7 +152,7 @@ def get_table_names_no_cache():
         return None, None
 
 
-@st.cache_data
+#@st.cache_data
 def get_table_names():
     try:
         database_name = 'phonepe_pulse'
