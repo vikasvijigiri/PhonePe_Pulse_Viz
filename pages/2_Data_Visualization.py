@@ -158,13 +158,11 @@ def get_table_names():
         database_name = 'phonepe_pulse'
         
         cols = st.columns(3)
-        localhost_placeholder = cols[0].empty()
-        root_placeholder = cols[1].empty()
-        passwd_placeholder = cols[2].empty()
+
         
-        localhost = localhost_placeholder.text_input("hostname", value='localhost', key='localhostss')  
-        root = root_placeholder.text_input("username", value='root', key='roots')
-        passwd = passwd_placeholder.text_input("Password", value='Vikas@123', key='pass')  
+        localhost = cols[0].text_input("hostname", value='localhost', key='localhostss')  
+        root = cols[1].text_input("username", value='root', key='roots')
+        passwd = cols[2].text_input("Password", value='Vikas@123', key='pass')  
         
 
         localhost = st.session_state.localhost
