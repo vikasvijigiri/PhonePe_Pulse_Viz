@@ -149,7 +149,7 @@ def get_table_names_no_cache():
 
     except mysql.connector.Error as e:
         print(f"Error: {e}")
-        return None, None
+        return None
 
 
 #@st.cache_data
@@ -175,7 +175,7 @@ def get_table_names():
         localhost = st.session_state.localhost
         root = st.session_state.root
         passwd = st.session_state.passwd               
-        st.write(localhost)
+        #st.write(localhost)
  
 
 
@@ -593,7 +593,7 @@ def main():
         st.session_state.data_frames_dict, st.session_state.odata_frames_dict = copy_mysql_data_to_df(table_names)
         #st.write("Again doing!")
     #st.write(st.session_state.data_frames_dict)
-    st.write('table names', table_names)
+    #st.write('table names', table_names)
     if table_names:        
         df, col1, col2 = create_sliders(table_names)
     
