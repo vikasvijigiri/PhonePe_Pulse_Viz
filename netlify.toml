@@ -2,8 +2,6 @@
   command = "pip install -r requirements.txt && streamlit run Home.py"
   publish = "./"
 
-[build.environment]
-  PYTHON_VERSION = "3.12"
 
 [[plugins]]
   package = "@netlify/plugin-functions-core"
