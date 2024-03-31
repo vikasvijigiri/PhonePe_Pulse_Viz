@@ -580,6 +580,7 @@ def main():
     
     # if st.button('Click to dynamically update'):
     table_names = get_table_names()
+    st.write(table_names)
     if st.session_state.data_frames_dict is None:
         st.session_state.data_frames_dict, st.session_state.odata_frames_dict = copy_mysql_data_to_df(table_names)
         #st.write("Again doing!")
